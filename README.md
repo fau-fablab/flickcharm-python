@@ -3,7 +3,7 @@ This is a Python ([PyQt](http://www.riverbankcomputing.co.uk/software/pyqt/intro
 
 Licensed under GNU GPL version 2 or later.
 
-This fork was imported from (code.google.com/p/flickcharm-python/)[https://code.google.com/p/flickcharm-python/], no author information provided there
+This fork was imported from [code.google.com/p/flickcharm-python/](https://code.google.com/p/flickcharm-python/), no author information provided there
 
 former project owner: akos.polster (presumably also the author)
 
