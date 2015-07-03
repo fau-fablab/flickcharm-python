@@ -5,6 +5,14 @@ from PyQt4.pyqtconfig import *
 from PyQt4.QtWebKit import *
 import sys
 
+# from http://code.google.com/p/flickcharm-python/
+# license GNU GPL v2 or later
+# No author information provided there
+# Project owner: akos.polster (presumably also the author)
+# License Text: see LICENSE_GPL2.txt file
+# This is a Python (PyQt) port of Ariya Hidayat's elegant FlickCharm hack which adds kinetic scrolling to any scrollable Qt widget.
+
+
 class FlickData:
     
     Steady = 0
@@ -32,23 +40,31 @@ class FlickCharmPrivate:
 
 class FlickCharm(QObject):
     
-    def __init__(self, parent = None):
+    def __init__(self, parent = None, moveTolerance=10):
         QObject.__init__(self, parent)
         self.d = FlickCharmPrivate()
+        self.moveTolerance=moveTolerance # how many pixels can a accidental drag-and-move operation be long so that it is ignored and only sent as a click?
         
     
-    def activateOn(self, widget):
+    def activateOn(self, widget, disableScrollbars=True):
         if isinstance(widget, QWebView):
             frame = widget.page().mainFrame()
-            frame.setScrollBarPolicy(Qt.Vertical, Qt.ScrollBarAlwaysOff)
-            frame.setScrollBarPolicy(Qt.Horizontal, Qt.ScrollBarAlwaysOff)
+            if disableScrollbars:
+                frame.setScrollBarPolicy(Qt.Vertical, Qt.ScrollBarAlwaysOff)
+                frame.setScrollBarPolicy(Qt.Horizontal, Qt.ScrollBarAlwaysOff)
             widget.installEventFilter(self)
             self.d.flickData[widget] = FlickData()
             self.d.flickData[widget].widget = widget
             self.d.flickData[widget].state = FlickData.Steady
         else:
-            widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-            widget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            if disableScrollbars:
+                widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+                widget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            if isinstance(widget, QAbstractItemView):
+                # scroll-per-item scrolling does not work because it is not continuous
+                # -> switch to per-pixel scrolling
+                widget.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
+                widget.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
             viewport = widget.viewport()
             viewport.installEventFilter(self)
             widget.installEventFilter(self)
@@ -72,7 +88,7 @@ class FlickCharm(QObject):
         
         if not object.isWidgetType():
             return False;
-    
+        
         eventType = event.type()
         if eventType != QEvent.MouseButtonPress and \
            eventType != QEvent.MouseButtonRelease and \
@@ -81,7 +97,7 @@ class FlickCharm(QObject):
     
         if event.modifiers() != Qt.NoModifier:
             return False
-    
+        
         if not self.d.flickData.has_key(object):
             return False
         
@@ -115,10 +131,11 @@ class FlickCharm(QObject):
                 QApplication.postEvent(object, event2)
             elif eventType == QEvent.MouseMove: 
                 consumed = True
-                data.state = FlickData.ManualScroll
-                data.dragPos = QCursor.pos()
-                if not self.d.ticker.isActive():
-                    self.d.ticker.start(20, self)
+                if ((data.pressPos-event.pos()).manhattanLength() > self.moveTolerance):
+                    data.state = FlickData.ManualScroll
+                    data.dragPos = QCursor.pos()
+                    if not self.d.ticker.isActive():
+                        self.d.ticker.start(20, self)
     
         elif data.state == FlickData.ManualScroll:
             if eventType == QEvent.MouseMove:
@@ -146,10 +163,11 @@ class FlickCharm(QObject):
                 data.state = FlickData.Steady
             elif eventType == QEvent.MouseMove:
                 consumed = True
-                data.state = FlickData.ManualScroll
-                data.dragPos = QCursor.pos()
-                if not self.d.ticker.isActive():
-                    self.d.ticker.start(20, self)
+                if ((data.pressPos-event.pos()).manhattanLength() > self.moveTolerance):
+                    data.state = FlickData.ManualScroll
+                    data.dragPos = QCursor.pos()
+                    if not self.d.ticker.isActive():
+                        self.d.ticker.start(20, self)
     
         return consumed
 
@@ -196,7 +214,7 @@ def setScrollOffset(widget, p):
         widget.verticalScrollBar().setValue(p.y())
       
 
-def deaccelerate(speed, a=1, maxVal=64):
+def deaccelerate(speed, a=1, maxVal=5): # change maxVal for maximum scrolling speed after touch-release
     x = qBound(-maxVal, speed.x(), maxVal)
     y = qBound(-maxVal, speed.y(), maxVal)
     if x > 0:
