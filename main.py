@@ -10,7 +10,9 @@ from flickcharm import *
 ITEM_WIDTH = 300
 ITEM_HEIGHT = 30
 
+
 class TextItem(QGraphicsItem):
+
     def __init__(self, str):
         QGraphicsItem.__init__(self)
         list = str.split()
@@ -21,13 +23,13 @@ class TextItem(QGraphicsItem):
         self.font1.setBold(True)
         self.font1.setPixelSize(ITEM_HEIGHT / 2)
         self.font2.setPixelSize(ITEM_HEIGHT / 2)
-        self.offset = QFontMetrics(self.font1).width(self.str1) + 15    
-        
+        self.offset = QFontMetrics(self.font1).width(self.str1) + 15
+
     def boundingRect(self):
         return QRectF(0, 0, ITEM_WIDTH, ITEM_HEIGHT)
-    
+
     def paint(self, painter, option, widget):
-        if option.state & QStyle.State_Selected: 
+        if option.state & QStyle.State_Selected:
             painter.fillRect(self.boundingRect(), QColor(0, 128, 240))
             painter.setPen(Qt.white)
         else:
@@ -35,10 +37,10 @@ class TextItem(QGraphicsItem):
             painter.drawRect(self.boundingRect())
             painter.setPen(Qt.black)
         painter.setFont(self.font1)
-        painter.drawText(QRect(10, 0, self.offset, ITEM_HEIGHT), 
+        painter.drawText(QRect(10, 0, self.offset, ITEM_HEIGHT),
                          Qt.AlignVCenter, self.str1)
         painter.setFont(self.font2)
-        painter.drawText(QRect(self.offset, 0, ITEM_WIDTH, ITEM_HEIGHT), 
+        painter.drawText(QRect(self.offset, 0, ITEM_WIDTH, ITEM_HEIGHT),
                          Qt.AlignVCenter, self.str2)
 
 
@@ -54,7 +56,7 @@ def colorPairs(max):
     for i in range(num):
         for j in range(num):
             combinedColors.append("%s %s" % (colors[i], colors[j]))
-            
+
     # randomize it
     colors = []
     while len(combinedColors):
@@ -65,11 +67,11 @@ def colorPairs(max):
             break
 
     return colors
-  
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    
+
     colors = colorPairs(5000)
     scene = QGraphicsScene()
     scene.setItemIndexMethod(QGraphicsScene.NoIndex)
@@ -80,7 +82,7 @@ if __name__ == "__main__":
         item.setPos(0, i * ITEM_HEIGHT)
         item.setFlag(QGraphicsItem.ItemIsSelectable, True)
         i += 1
-        
+
     scene.setItemIndexMethod(QGraphicsScene.BspTreeIndex)
 
     canvas = QGraphicsView()
@@ -94,9 +96,9 @@ if __name__ == "__main__":
     web.setUrl(QUrl("frankenstein.html"))
     web.setWindowTitle("Flickable Web View")
     web.show()
-    
+
     charm = FlickCharm()
     charm.activateOn(canvas)
     charm.activateOn(web)
-    
+
     sys.exit(app.exec_())
