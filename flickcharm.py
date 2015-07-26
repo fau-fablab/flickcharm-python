@@ -40,10 +40,18 @@ class FlickCharmPrivate:
 
 class FlickCharm(QObject):
 
-    def __init__(self, parent=None, moveTolerance=10):
+    def __init__(self, parent=None, moveTolerance=10, maxAcc=64):
+        """
+
+        :param parent:
+        :param moveTolerance: how many pixels can a accidental drag-and-move operation be long so that it is ignored and only sent as a click?
+        :param maxAcc: fastest possible acceleration value
+        :return:
+        """
         QObject.__init__(self, parent)
         self.d = FlickCharmPrivate()
-        self.moveTolerance = moveTolerance  # how many pixels can a accidental drag-and-move operation be long so that it is ignored and only sent as a click?
+        self.moveTolerance = moveTolerance
+        self.maxAcc = maxAcc
 
     def activateOn(self, widget, disableScrollbars=True):
         if isinstance(widget, QWebView):
@@ -178,7 +186,7 @@ class FlickCharm(QObject):
                 data.dragPos = cursorPos
             elif data.state == FlickData.AutoScroll:
                 count += 1
-                data.speed = deaccelerate(data.speed)
+                data.speed = deaccelerate(data.speed, maxAcc=self.maxAcc)
                 p = scrollOffset(data.widget)
                 setScrollOffset(data.widget, p - data.speed)
                 if data.speed == QPoint(0, 0):
@@ -210,9 +218,9 @@ def setScrollOffset(widget, p):
         widget.verticalScrollBar().setValue(p.y())
 
 
-def deaccelerate(speed, a=1, maxVal=5):  # change maxVal for maximum scrolling speed after touch-release
-    x = qBound(-maxVal, speed.x(), maxVal)
-    y = qBound(-maxVal, speed.y(), maxVal)
+def deaccelerate(speed, a=1, maxAcc=64):  # change maxAcc for maximum scrolling speed after touch-release
+    x = qBound(-maxAcc, speed.x(), maxAcc)
+    y = qBound(-maxAcc, speed.y(), maxAcc)
     if x > 0:
         x = max(0, x - a)
     elif x < 0:
