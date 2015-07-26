@@ -157,6 +157,7 @@ class FlickCharm(QObject):
                 consumed = True
                 data.state = FlickData.Stop
                 data.speed = QPoint(0, 0)
+                data.offset = scrollOffset(data.widget)
             elif eventType == QEvent.MouseButtonRelease:
                 consumed = True
                 data.state = FlickData.Steady
