@@ -2,7 +2,12 @@ import copy
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 # from PyQt4.pyqtconfig import *
-from PyQt4.QtWebKit import *
+try:
+    from PyQt4.QtWebKit import *
+except ImportError:
+    # QtWebKit is not available, fall-back gently
+    class QWebView(object):
+        pass
 # import sys
 
 # from http://code.google.com/p/flickcharm-python/
