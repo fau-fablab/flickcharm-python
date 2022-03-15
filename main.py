@@ -2,6 +2,7 @@
 # from PyQt4.QtGui import *
 # from PyQt4.QtWebKit import *
 import random
+
 # import traceback
 import sys
 
@@ -12,7 +13,6 @@ ITEM_HEIGHT = 30
 
 
 class TextItem(QGraphicsItem):
-
     def __init__(self, str):
         QGraphicsItem.__init__(self)
         list = str.split()
@@ -37,11 +37,13 @@ class TextItem(QGraphicsItem):
             painter.drawRect(self.boundingRect())
             painter.setPen(Qt.black)
         painter.setFont(self.font1)
-        painter.drawText(QRect(10, 0, self.offset, ITEM_HEIGHT),
-                         Qt.AlignVCenter, self.str1)
+        painter.drawText(
+            QRect(10, 0, self.offset, ITEM_HEIGHT), Qt.AlignVCenter, self.str1
+        )
         painter.setFont(self.font2)
-        painter.drawText(QRect(self.offset, 0, ITEM_WIDTH, ITEM_HEIGHT),
-                         Qt.AlignVCenter, self.str2)
+        painter.drawText(
+            QRect(self.offset, 0, ITEM_WIDTH, ITEM_HEIGHT), Qt.AlignVCenter, self.str2
+        )
 
 
 def colorPairs(max):
@@ -62,7 +64,7 @@ def colorPairs(max):
     while len(combinedColors):
         i = random.randint(0, len(combinedColors) - 1)
         colors.append(combinedColors[i])
-        del(combinedColors[i])
+        del combinedColors[i]
         if len(colors) == max:
             break
 

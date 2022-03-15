@@ -1,6 +1,7 @@
 import copy
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+
 # from PyQt4.pyqtconfig import *
 try:
     from PyQt4.QtWebKit import *
@@ -8,6 +9,8 @@ except ImportError:
     # QtWebKit is not available, fall-back gently
     class QWebView(object):
         pass
+
+
 # import sys
 
 # from http://code.google.com/p/flickcharm-python/
@@ -37,14 +40,12 @@ class FlickData:
 
 
 class FlickCharmPrivate:
-
     def __init__(self):
         self.flickData = {}
         self.ticker = QBasicTimer()
 
 
 class FlickCharm(QObject):
-
     def __init__(self, parent=None, moveTolerance=10, maxAcc=64):
         """
 
@@ -87,12 +88,12 @@ class FlickCharm(QObject):
     def deactivateFrom(self, widget):
         if isinstance(widget, QWebView):
             widget.removeEventFilter(self)
-            del(self.d.flickData[widget])
+            del self.d.flickData[widget]
         else:
             viewport = widget.viewport()
             viewport.removeEventFilter(self)
             widget.removeEventFilter(self)
-            del(self.d.flickData[viewport])
+            del self.d.flickData[viewport]
 
     def eventFilter(self, object, event):
 
@@ -100,9 +101,11 @@ class FlickCharm(QObject):
             return False
 
         eventType = event.type()
-        if eventType != QEvent.MouseButtonPress and \
-           eventType != QEvent.MouseButtonRelease and \
-           eventType != QEvent.MouseMove:
+        if (
+            eventType != QEvent.MouseButtonPress
+            and eventType != QEvent.MouseButtonRelease
+            and eventType != QEvent.MouseMove
+        ):
             return False
 
         if event.modifiers() != Qt.NoModifier:
@@ -131,9 +134,13 @@ class FlickCharm(QObject):
             if eventType == QEvent.MouseButtonRelease:
                 consumed = True
                 data.state = FlickData.Steady
-                event1 = QMouseEvent(QEvent.MouseButtonPress,
-                                     data.pressPos, Qt.LeftButton,
-                                     Qt.LeftButton, Qt.NoModifier)
+                event1 = QMouseEvent(
+                    QEvent.MouseButtonPress,
+                    data.pressPos,
+                    Qt.LeftButton,
+                    Qt.LeftButton,
+                    Qt.NoModifier,
+                )
                 event2 = QMouseEvent(event)
                 data.ignored.append(event1)
                 data.ignored.append(event2)
@@ -141,7 +148,7 @@ class FlickCharm(QObject):
                 QApplication.postEvent(object, event2)
             elif eventType == QEvent.MouseMove:
                 consumed = True
-                if ((data.pressPos - event.pos()).manhattanLength() > self.moveTolerance):
+                if (data.pressPos - event.pos()).manhattanLength() > self.moveTolerance:
                     data.state = FlickData.ManualScroll
                     data.dragPos = QCursor.pos()
                     if not self.d.ticker.isActive():
@@ -174,7 +181,7 @@ class FlickCharm(QObject):
                 data.state = FlickData.Steady
             elif eventType == QEvent.MouseMove:
                 consumed = True
-                if ((data.pressPos - event.pos()).manhattanLength() > self.moveTolerance):
+                if (data.pressPos - event.pos()).manhattanLength() > self.moveTolerance:
                     data.state = FlickData.ManualScroll
                     data.dragPos = QCursor.pos()
                     if not self.d.ticker.isActive():
@@ -224,7 +231,9 @@ def setScrollOffset(widget, p):
         widget.verticalScrollBar().setValue(p.y())
 
 
-def deaccelerate(speed, a=1, maxAcc=64):  # change maxAcc for maximum scrolling speed after touch-release
+def deaccelerate(
+    speed, a=1, maxAcc=64
+):  # change maxAcc for maximum scrolling speed after touch-release
     x = qBound(-maxAcc, speed.x(), maxAcc)
     y = qBound(-maxAcc, speed.y(), maxAcc)
     if x > 0:
